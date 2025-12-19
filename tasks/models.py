@@ -23,6 +23,36 @@ class Task(models.Model):
         related_name='owned_task',
         on_delete=models.SET_NULL, null=True,
         db_comment='Foreign key to the User who currently owns the task.')
+    epic = models.ForeignKey('Epic', null= True, on_delete=models.SET_NULL)
 
     class Meta:
         db_table = 'Holds information about tasks'
+
+
+class Sprint(models.Model):
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    creator = models.ForeignKey(
+        User, related_name='created_sprints',
+        on_delete=models.CASCADE)
+    tasks = models.ManyToManyField('Task', related_name='sprint', blank=True)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(condition=models.Q(end_date__gt=models.F('start_date')),
+                                   name='end_date_after_start_date'),
+        ]
+
+
+class Epic(models.Model):
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    creator = models.ForeignKey(User, related_name='created_epics',
+                                on_delete=models.CASCADE)
+
